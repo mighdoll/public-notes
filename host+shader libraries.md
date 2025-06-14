@@ -1,8 +1,8 @@
 Some WebGPU libraries will include both shader code and host code (e.g. in Rust or JavaScript or C++). In WebGPU, shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. Despite needing two languages for execution, there are many gpu tasks with relatively simple modular interfaces that would make good libraries (and are available as libraries in other GPU communities). Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. A standard interface for simple host+shader WebGPU libraries will help. 
 
-I think we can make **an** interface that library authors and users can use today. Future versions of WGSL and WESL will make things easier for library authors, but library users will be largely unaware of improvements behind the scenes. 
+I think we can make **an** interface that library authors and users can use today. Future versions of WGSL and WESL will make things easier, but library users can be enabled now. 
 ### TBD
-- is this sufficient to use/encapsulate key apis
+- is this sufficient to use/encapsulate key apis?
 - binding groups integration - do host+shader libraries need to integrate binding group indices?
 - bindless?
 ### Notable requirements:
