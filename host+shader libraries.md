@@ -1,8 +1,8 @@
-Some WebGPU libraries will include both shader code and host code (e.g. in Rust or JavaScript or C++). In WebGPU, shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. Despite needing two languages for execution, there are many gpu tasks with relatively simple modular interfaces that would make good libraries (and are available as libraries in other GPU communities). Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. A standard interface for simple host+shader WebGPU libraries will help. 
+Some WebGPU libraries will include both shader code and host code (e.g. in Rust or JavaScript or C++). In WebGPU, shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. Despite needing two languages for execution, there are many gpu tasks with relatively simple interfaces that would make good WebGPU libraries (and are available as libraries in other GPU communities). Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. A standard interface for simple host+shader WebGPU libraries will help. 
 
-I think we can make **an** interface that library authors and users can use today. Future versions of WGSL and WESL will make things easier, but library users can be enabled now. 
+I think we can make **an** interface that library authors and users can use today. Future versions of WGSL and WESL will make things easier for library authors, but library users can be enabled now. 
 ### TBD
-- is this sufficient to use/encapsulate key apis?
+- are the plans below sufficient to enable efficient host+shader libraries?
 - binding groups integration - do host+shader libraries need to integrate binding group indices?
 - bindless?
 ### Notable requirements:
@@ -12,10 +12,10 @@ I think we can make **an** interface that library authors and users can use toda
 - host+shader libraries should be reconfigurable after use. Switching to a larger or different source buffer shouldn't require destroying everything and starting over.
 ## Proposed
 ### Basic Approach
-Host+shader libraries would be published separately in crates.io and npmjs.com, as with shader-only WGSL/WESL libraries. The shader code would be the same in both versions, but host code would be written twice, once in Rust and once in JavaScript/TypeScript. In the future I hope we might find a language neutral declarative way to specify the host 'glue' code, but that's probably best developed after we've some more experience with the needs of this class of library. For now I'm assuming that library authors would simply manually port their host code to/from Rust and TypeScript, and that host code interfaces would be relatively similar to make that easy.
-### Example use
+Host+shader libraries are published separately in crates.io and npmjs.com, as with shader-only WGSL/WESL libraries. The shader code would normally be the same in both versions, but host code would be written twice, once in Rust and once in JavaScript/TypeScript. In the future perhaps we'll develop a host-language neutral declarative way to specify the host 'glue' code, but that's probably best developed after we've some more experience with the needs of this class of library. For now I'm assuming that library authors would simply manually port their host code to/from Rust and TypeScript, and that host code interfaces would be relatively similar to make porting easy.
+### Host code driven
 
-Applications will typically initialize and configure a host+shader library from host code. Applications use the `commands()` api provided by the library to integrate execution library into the application's `GPUCommandEncoder` before the application calls `dispatchWorkgroup()`.
+Applications will typically initialize and configure a host+shader library from host code. Applications use the `commands()` api provided by the host+shader library to integrate execution library into the application's `GPUCommandEncoder` before the application calls `dispatchWorkgroup()`.
 
 Host+shader libraries implement the following interface:
 ```ts
