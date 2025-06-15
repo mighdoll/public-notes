@@ -25,6 +25,18 @@ Applications will typically initialize and configure a host+shader library from 
 
 (Note that a shader-only function library integrates into applications differently than this kind of host+shader library. In a shader-only library, the application shader code imports library functions but the application remains fully responsible for setup and execution. In contrast, host+shader libraries take more responsibility for their own setup and execution.)
 
+### Lifecycle for a Hosted Shader
+- init - specify key parameters
+- allocate - allocation of GPU resources can be implicit, or lazy
+- execute - integrate via GPUCommandEncoder
+- reconfigure - change config
+- destroy - dispose of GPU resources (like intermediate GPU buffers)
+
+TBD...
+In TypeScript, the library is exposed as a  
+...
+
+### API discussion
 Host+shader libraries implement the following interface:
 ```ts
 	export interface HostedShader {
@@ -160,9 +172,10 @@ We're aware of several additional encapsulation challenges related to the host i
 
 We have discussed possible WESL solutions for these additional problems elsewhere. In the interim, libraries can workaround. e.g. for conditions, prefer `@if(foolib_keyvalue)`  rather than `@if(keyvalue)`, because the shorter `keyvalue` is more likely to conflict with another library or application. 
 
-### WESL Features for Host+Shader Libraries
+### WESL Features to Consider for Host+Shader Libraries
 In addition to features generally useful (like generics), a few feature ideas are particularly relevant for this class of libraries:
 - reified references [#51](https://github.com/wgsl-tooling-wg/wesl-spec/issues/51) to specify user code to inject for [[#Manual Fusion]] 
 - a way for shaders to import from reified references
 - pluggable functions [#133](https://github.com/wgsl-tooling-wg/wesl-spec/issues/133)
+- a way to specify shader types (possibly shader generic types) from the host. 
 
