@@ -8,7 +8,7 @@ I think we can define a standard approach that library authors and users can use
 ### Notable requirements:
 - applications using a host+shader library need to be able to manage GPU buffers to integrate with other application code and host+shader libraries
 - performance needs to be reasonably close to a full custom solution for typical cases. 
-	- For some libraries, that'll require some level of 'fusion' to avoid the performance cost of spilling data to slower global storage and multiple shader dispatches between libraries. E.g. map() then reduce() shouldn't have to spill data to global storage in between.
+  - For some libraries, that'll require some level of 'fusion' to avoid the performance cost of spilling data to slower global storage and multiple shader dispatches between libraries. E.g. map() then reduce() shouldn't have to spill data to global storage in between.
 - host+shader libraries should be reconfigurable after use. Switching to a larger or different source buffer shouldn't require destroying everything and starting over.
 ## Proposed Sketch
 ### TBD
@@ -39,39 +39,39 @@ In TypeScript, the library is exposed as a
 ### API discussion
 Host+shader libraries implement the following interface:
 ```ts
-	export interface HostedShader {
-		/** Add compute or render passes for this shader to the provided GPUCommandEncoder */
-		commands(encoder: GPUCommandEncoder): void;
-		
-		/** cleanup gpu resources */
-		destroy?: () => void;
-		
-		/** optional name for logging and benchmarking */
-		name?: string;
-	}
+  export interface HostedShader {
+    /** Add compute or render passes for this shader to the provided GPUCommandEncoder */
+    commands(encoder: GPUCommandEncoder): void;
+    
+    /** cleanup gpu resources */
+    destroy?: () => void;
+    
+    /** optional name for logging and benchmarking */
+    name?: string;
+  }
 ```
 
 Users initialize a hosted shader by passing configuration parameters (all this is in host code), e.g.
 ```ts
-	const sortIn: GPUBuffer = ...;
+  const sortIn: GPUBuffer = ...;
 
-	const sort = new RadixSort({ 
-		input: sortIn, 
-		keysOnly: true, 
-		elemType: "u32" 
-	});
+  const sort = new RadixSort({ 
+    input: sortIn, 
+    keysOnly: true, 
+    elemType: "u32" 
+  });
 ```
 
 Users execute the configured `HostedShader` by plugging it into their application's GPU dispatch loop, e.g.:
 
 ```ts
-	function render() {
-		const cmds: GPUCommandEncoder = ...;
+  function render() {
+    const cmds: GPUCommandEncoder = ...;
 
-		sort(cmds); // execute gpu sort library in application
+    sort(cmds); // execute gpu sort library in application
 
-		cmds.dispatchWorkgroup(...);
-	}
+    cmds.dispatchWorkgroup(...);
+  }
 ```
 
 Multiple hosted shader libraries (and application code) can be dispatched together and share resources like GPU buffers. 
@@ -80,10 +80,10 @@ const sort = new RadixSort({ input: sortIn, output: sortOut, ..});
 const scan = new Scan({ input: sortOut, type: "exclusive", ..})
 
 function render() {
-	...
-	sort(cmds);
-	scan(cmds);
-	...
+  ...
+  sort(cmds);
+  scan(cmds);
+  ...
 }
 ```
 ### Reconfiguration
@@ -101,9 +101,9 @@ Internally, its up the `HostedShader` to decide what GPU resources need to be re
 Typically a `HostedShader` should optionally construct GPU resources if they're not provided by the caller. e.g. `scan()` can create its own output GPUBuffer if none is provided:
 ```ts
 interface ScanParams {
-	input: GPUBuffer;
-	output?: GPUBuffer;
-	...
+  input: GPUBuffer;
+  output?: GPUBuffer;
+  ...
 }
 ```
 
@@ -120,8 +120,8 @@ To run additional shader code within the same GPU thread, `HostedShader`s may of
 import w from "./myShader.wgsl"; // reflect 
 
 const reduce = new Reduce({ 
-	preMap: w.fn.myMapFn, 
-	...
+  preMap: w.fn.myMapFn, 
+  ...
 });
 ```
 The goal of manual fusion is to increase performance. In this case of a map followed by a reduce, speed is maximized by running a user provided map function over the input data in the same gpu thread as reduce, without a separate dispatch and without a temporary buffer for the map results. 
@@ -130,8 +130,8 @@ To effect this fusion, I'm imagining it would be convenient to use some reflecti
 
 ```ts
 const reduce = new Reduce({ 
-	preMap: `fn reduce_preMap(elem: i32) -> i32 { return abs(elem); }`, 
-	...
+  preMap: `fn reduce_preMap(elem: i32) -> i32 { return abs(elem); }`, 
+  ...
 });
 ```
 ### Dynamic Dependencies between Reconfigured Shaders
@@ -153,9 +153,9 @@ To enable a reactivity for dependencies between libraries, `HostedShader` initia
 So for the `Scan` example, initialization parameters should accept either raw values or functions returning values:
 ```ts
 interface ScanParams {
-	input: GPUBuffer | () => GPUBuffer;
-	output?: GPUBuffer | () => GPUBuffer;
-	...
+  input: GPUBuffer | () => GPUBuffer;
+  output?: GPUBuffer | () => GPUBuffer;
+  ...
 }
 
 const sort = new RadixSort({ input: sortIn, ..});
@@ -166,9 +166,9 @@ The user can safely drop the manual per frame update of depencies if the `RadixS
 There are challenges to modularity in any WebGPU library with shader code, even if the library itself doesn't include any host code. Especially when two libraries might exist in the same WebGPU shader module, there's opportunity for conflict. For example, since all WGSL functions live in the same global namespace, two libraries that happen to use the same `fn` name will conflict. WESL solves shader name conflict problems with a mangling scheme. As WESL shaders are bundled into WGSL, global names (and the references to the global names) are made unique.
 
 We're aware of several additional encapsulation challenges related to the host interface, which is also shared among all libraries bundled into the same `GPUShaderModule`.
-	- conditions integration - how do shader libraries expose conditions for runtime/build time compilation control by applications? [#]
-	- injected consts & overrides - how do shader libraries expose injected consts and pipeline overrides to applications without conflicting with each other?
-	- uniforms integration - how do shaders libraries expose configurability through uniform buffers without allocating a separate uniform buffer for each library?
+  - conditions integration - how do shader libraries expose conditions for runtime/build time compilation control by applications? [#]
+  - injected consts & overrides - how do shader libraries expose injected consts and pipeline overrides to applications without conflicting with each other?
+  - uniforms integration - how do shaders libraries expose configurability through uniform buffers without allocating a separate uniform buffer for each library?
 
 We have discussed possible WESL solutions for these additional problems elsewhere. In the interim, libraries can workaround. e.g. for conditions, prefer `@if(foolib_keyvalue)`  rather than `@if(keyvalue)`, because the shorter `keyvalue` is more likely to conflict with another library or application. 
 
