@@ -2,9 +2,9 @@ WESL tooling currently supports packaging WGSL and WESL as libraries in npm and 
 
 But some potential WebGPU libraries want both shader code and host code (e.g. in Rust or JavaScript or C++). In WebGPU, shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. 
 
-Despite needing two languages for execution, there are many gpu tasks with relatively simple interfaces that would make good WebGPU libraries. Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. A standard interface for simple host+shader WebGPU libraries will help. 
+Despite needing two languages for execution, there are many gpu tasks with relatively simple interfaces that would make good WebGPU libraries. Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. See [cub](https://docs.nvidia.com/cuda/cub/index.html), [RocPRIM](https://rocmdocs.amd.com/projects/rocPRIM/en/latest/concepts/intro.html#rocprim-intro) for examples in other ecosystems. These kind of algorithms are well studied, subtle to implement, and often performance critical. They're a perfect fit for a community library. A standard interface for simple host+shader WebGPU libraries will help. 
 
-I think we can define a standard approach that library authors and users can use today for host+shader libraries. The primary task I think is to define the rust/typescript interface. Future versions of WGSL and WESL will make things smoother, but library users can be enabled now. 
+I think we can define a standard approach that library authors and users can use today for host+shader libraries. The primary task I think is to define the rust/typescript interface. Future versions of WGSL and WESL will be helpful too, but library users can be enabled now. 
 ### Notable requirements:
 - applications using a host+shader library need to be able to manage GPU buffers to integrate with other application code and host+shader libraries
 - performance needs to be reasonably close to a full custom solution for typical cases. 
@@ -16,7 +16,7 @@ I think we can define a standard approach that library authors and users can use
 - binding groups integration - do host+shader libraries need to integrate binding group indices?
 - bindless?
 ### Basic Approach
-WESL has a solution today for publishing shader libraries to crates.io and npmjs.com. See [publishing packages](https://wesl-lang.dev/docs/Publishing-Packages). Shader texts are bundled into rust or javascript structures with some metadata to enable shader linking of imported packages or crates. A host+shader library typically includes a shader bundle as well as some rust or javascript host code. But the shader code may be entirely internal to the library, library users may only see the host api.
+WESL has a solution today for publishing shader libraries to crates.io and npmjs.com. See [publishing packages](https://wesl-lang.dev/docs/Publishing-Packages). Shader texts are bundled into rust or javascript structures with some metadata to enable shader linking of imported packages or crates. A host+shader library typically includes a shader bundle as well as some rust or javascript host code. But the shader code may be entirely internal to the library, users may only see the host API in Rust or TypeScript.
 
 Host+shader libraries are published separately in crates.io and npmjs.com, as with shader-only WGSL/WESL libraries. The shader code would normally be the same in both versions, but host code would be written twice, once in Rust and once in JavaScript/TypeScript. In the future perhaps we'll develop a host-language neutral declarative way to specify the host 'glue' code, but that's probably best developed after we've some more experience with the needs of this class of library. For now I'm assuming that library authors would simply manually port their host code to/from Rust and TypeScript, and that host code interfaces would be relatively similar to make porting easy.
 ### Host code drives
@@ -24,18 +24,16 @@ Host+shader libraries are published separately in crates.io and npmjs.com, as wi
 Applications will typically initialize and configure a host+shader library from host code. These libraries are 'in charge' of their own setup and execution. Applications use the `commands()` api provided by the host+shader library to integrate execution library into the application's `GPUCommandEncoder` before the application calls `dispatchWorkgroup()`.
 
 (Note that a shader-only function library integrates into applications differently than this kind of host+shader library. In a shader-only library, the application shader code imports library functions but the application remains fully responsible for setup and execution. In contrast, host+shader libraries take more responsibility for their own setup and execution.)
+### Lifecycle for a HostedShader
+- **initialization** - specify key parameters
+- **allocate** - allocation of GPU resources can be implicit, or lazy
+- **execute** - integrate via GPUCommandEncoder
+- **reconfigure** - change config
+- **destroy** - dispose of GPU resources (like intermediate GPU buffers)
 
-### Lifecycle for a Hosted Shader
-- init - specify key parameters
-- allocate - allocation of GPU resources can be implicit, or lazy
-- execute - integrate via GPUCommandEncoder
-- reconfigure - change config
-- destroy - dispose of GPU resources (like intermediate GPU buffers)
+In TypeScript, the library is exposed as a class that implements the `HostedShader` interface which offers an explicit interfaces for **destroy** and a `commands()` method to integrate with the applications **execute** loop. A `HostedShader` is expected to offer **initialization** through constructor parameters, **reconfigure** with parameter-setting methods, and **allocate** lazily as needed for execution. 
 
-TBD...
-In TypeScript, the library is exposed as a  
-...
-
+Rust version is TBD.
 ### API discussion
 Host+shader libraries implement the following interface:
 ```ts
@@ -87,12 +85,13 @@ function render() {
 }
 ```
 ### Reconfiguration
-Applications can modify a `HostedShader` at any time to affect future executions:
+Applications can modify a `HostedShader` at any time to affect future executions. Hosted shaders should offer parameter methods that match initialization parameter names for both getting and setting `HostedShader` parameters.
+
 ```ts
 const sort = new RadixSort({ input: bufA, output: bufB, ..});
 render();
-sort.setInput(bufB);
-sort.setOuput(bufA);
+sort.input(bufB);
+sort.output(bufA);
 render();
 ```
 
@@ -107,12 +106,11 @@ interface ScanParams {
 }
 ```
 
-The `HostedShader` should provide readers for those resources. The reader API should use function syntax with `()` rather than property access syntax to remind the caller that the values may change if the shader is reconfigured.
+The `HostedShader` should provide readers for those resources. Using function syntax with `()` rather than property access syntax reminds the caller that the values may change if the shader is reconfigured.
 
 ```ts
 const outBuf: GPUBuffer = scan.output();
 ```
-
 ### Manual Fusion
 To run additional shader code within the same GPU thread, `HostedShader`s may offer API hooks to call application provided shader functions.
 
@@ -136,41 +134,13 @@ const reduce = new Reduce({
 ```
 ### Dynamic Dependencies between Reconfigured Shaders
 When a `HostedShader` reconfigures, some of its internally generated resources may be reconstructed. e.g. in the `sort()` then `scan()` example above, the `sort()` output buffer might be replaced if a new input buffer is provided by the user. If a `HostedShader` depends on a reconfigured value, as `scan()` depends on `sort()`'s output buffer in the example, then the depending `HostedShader` will also need to be reconfigured.
-
 #### Update Dependencies every Frame
-`HostedShader` application users should defensively set parameters prior to every dispatch to pick up any changes to dynamic fields, unless the libraries are reactive (see below).
+`HostedShader` application users should defensively set parameters prior to every dispatch to pick up any changes to dynamic fields, unless the libraries are documented as reactive.
 ```ts
 scan.setInput(sort.output())
 render();
 ```
 Accordingly, `HostedShader` implementations should be idempotent if a configuration value is reset to the same value.
-#### Simplify with Reactivity
-To make implementation easier, `HostedShader` implementors are encouraged to consider using a reactive library like `leptos_reactive` in the rust community or the or tc39 `proposal-signals` polyfill in the JavaScript community. Reactive functionality allow for automatically rebuilding internal GPU resources as required when configuration changes.
-
-For users, reactive libraries relieve application users of the need to defensively set dynamic parameters, as reactive tracking will take care of that automatically. 
-
-To enable a reactivity for dependencies between libraries, `HostedShader` initializers should accept functions as well as raw values. Using functions will enable establishing of reactive links between `HostedShader`s without further user intervention. 
-So for the `Scan` example, initialization parameters should accept either raw values or functions returning values:
-```ts
-interface ScanParams {
-  input: GPUBuffer | () => GPUBuffer;
-  output?: GPUBuffer | () => GPUBuffer;
-  ...
-}
-
-const sort = new RadixSort({ input: sortIn, ..});
-const scan = new Scan({ input: () => sort.output(), type: "exclusive", ..})
-```
-The user can safely drop the manual per frame update of depencies if the `RadixSort` and `Scan` use the same reactive library. 
-### Note on encapsulating shader code in libraries
-There are challenges to modularity in any WebGPU library with shader code, even if the library itself doesn't include any host code. Especially when two libraries might exist in the same WebGPU shader module, there's opportunity for conflict. For example, since all WGSL functions live in the same global namespace, two libraries that happen to use the same `fn` name will conflict. WESL solves shader name conflict problems with a mangling scheme. As WESL shaders are bundled into WGSL, global names (and the references to the global names) are made unique.
-
-We're aware of several additional encapsulation challenges related to the host interface, which is also shared among all libraries bundled into the same `GPUShaderModule`.
-  - conditions integration - how do shader libraries expose conditions for runtime/build time compilation control by applications? [#]
-  - injected consts & overrides - how do shader libraries expose injected consts and pipeline overrides to applications without conflicting with each other?
-  - uniforms integration - how do shaders libraries expose configurability through uniform buffers without allocating a separate uniform buffer for each library?
-
-We have discussed possible WESL solutions for these additional problems elsewhere. In the interim, libraries can workaround. e.g. for conditions, prefer `@if(foolib_keyvalue)`  rather than `@if(keyvalue)`, because the shorter `keyvalue` is more likely to conflict with another library or application. 
 
 ### WESL Features to Consider for Host+Shader Libraries
 In addition to features generally useful (like generics), a few feature ideas are particularly relevant for this class of libraries:
@@ -178,4 +148,34 @@ In addition to features generally useful (like generics), a few feature ideas ar
 - a way for shaders to import from reified references
 - pluggable functions [#133](https://github.com/wgsl-tooling-wg/wesl-spec/issues/133)
 - a way to specify shader types (possibly shader generic types) from the host. 
+### Note on encapsulating shader code in libraries
+There are challenges to modularity in any WebGPU library with shader code, even if the library itself doesn't include any host code. Especially when two libraries might exist in the same WebGPU shader module, there's opportunity for conflict. For example, since all WGSL functions live in the same global namespace, two libraries that happen to use the same `fn` name will conflict. WESL solves shader name conflict problems with a mangling scheme. As WESL shaders are bundled into WGSL, global names (and the references to the global names) are made unique.
 
+We're aware of several additional encapsulation challenges related to the host interface, which is also shared among all libraries bundled into the same `GPUShaderModule`.
+  - conditions integration - how do shader libraries expose conditions for runtime/build time compilation control by applications?
+  - injected consts & overrides - how do shader libraries expose injected consts and pipeline overrides to applications without conflicting with each other?
+  - uniforms integration - how do shaders libraries expose configurability through uniform buffers without allocating a separate uniform buffer for each library?
+
+We have discussed possible WESL solutions for these additional problems elsewhere. In the interim, libraries can workaround. e.g. for conditions, prefer `@if(foolib_keyvalue)`  rather than `@if(keyvalue)`, because the shorter `keyvalue` is more likely to conflict with another library or application. 
+#### Simplifying with Reactivity
+`HostedShader` implementors are encouraged to consider using a reactive library like `leptos_reactive` in the rust community or the or tc39 `proposal-signals` polyfill in the JavaScript community. Reactivity offers two benefits. Library authors can automatically rebuild internal GPU resources as required when configuration changes. And for users, reactive libraries relieve application users of the need to updating dependencies every frame, as reactive tracking will take care of that automatically. 
+
+`HostedShader` APIs should be written in way to allow for establishing reactive links between libraries. For JavaScript/TypeScript, implementations should expect that callers may pass in parameters with 'getters'. That will allow reactive libraries to track links between libraries. 
+```ts
+const sort = new RadixSort({ input: sortIn, ..});
+const scan = new Scan({ get input() return { sort.output(); }});
+```
+
+To preserve reactivity, libraries should also continue to use the getter interface internally. 
+
+```ts
+class Scan implements HostedShader {
+  constructor(private params: ScanParams) {}
+
+  commands (encoder: GPUCommandEncoder) {
+    this.params.input; // reactively OK, uses params getter 
+  }
+}
+```
+
+The user can safely drop the manual per frame update of dependencies if the `RadixSort` and `Scan` use the same reactive library.
