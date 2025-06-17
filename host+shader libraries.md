@@ -1,8 +1,10 @@
-WESL tooling currently supports packaging WGSL and WESL as libraries in npm and crates.io.
+WESL tooling currently supports packaging WGSL and WESL as libraries in npm and [crates.io](http://crates.io/).
 
-But some potential WebGPU libraries want both shader code and host code (e.g. in Rust or JavaScript or C++). After all, in WebGPU shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. 
+But some potential WebGPU libraries need both shader code _and_ host code (in Rust or JavaScript). After all, in WebGPU shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code.
 
-Despite needing two languages for execution, there are many gpu tasks with relatively simple interfaces that would make good WebGPU libraries. Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. See [cub](https://docs.nvidia.com/cuda/cub/index.html), [RocPRIM](https://rocmdocs.amd.com/projects/rocPRIM/en/latest/concepts/intro.html#rocprim-intro) for examples in other ecosystems. These algorithms are well studied, subtle to implement, and often performance critical. They're a perfect fit for a community library. A standard interface for simple host+shader WebGPU libraries will help. 
+There are many gpu tasks with relatively simple interfaces that would make good WebGPU libraries. Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more. blur() or sort() would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. See [cub](https://docs.nvidia.com/cuda/cub/index.html), [RocPRIM](https://rocmdocs.amd.com/projects/rocPRIM/en/latest/concepts/intro.html#rocprim-intro) for examples in other ecosystems. Some of these algorithms are well studied, subtle to implement, and often performance critical. They're a perfect fit for community libraries.
+
+A standard interface that covers a large class of host+shader WebGPU libraries will help.
 
 I think we can define a standard approach that library authors and users can use today for host+shader libraries. The primary task I think is to define the rust/typescript interface. Future versions of WGSL and WESL will be helpful too, but library users can be enabled now. 
 ### Notable requirements:
