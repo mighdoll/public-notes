@@ -1,6 +1,6 @@
 WESL tooling currently supports packaging WGSL and WESL as libraries in npm and crates.io.
 
-But some potential WebGPU libraries want both shader code and host code (e.g. in Rust or JavaScript or C++). In WebGPU, shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. 
+But some potential WebGPU libraries want both shader code and host code (e.g. in Rust or JavaScript or C++). After all, in WebGPU shaders can't allocate buffers or dispatch shaders - that logic needs to be in host code. So libraries that need to internally allocate buffers or internally dispatch shader kernels need host code as well as shader code. 
 
 Despite needing two languages for execution, there are many gpu tasks with relatively simple interfaces that would make good WebGPU libraries. Examples of host+shader libraries in this class include image processing filters, sorting, prefix scan, reduction, and many more.  `blur()` or `sort()` would be widely useful to the WebGPU community if they could be packaged in a way that's easy to use. See [cub](https://docs.nvidia.com/cuda/cub/index.html), [RocPRIM](https://rocmdocs.amd.com/projects/rocPRIM/en/latest/concepts/intro.html#rocprim-intro) for examples in other ecosystems. These kind of algorithms are well studied, subtle to implement, and often performance critical. They're a perfect fit for a community library. A standard interface for simple host+shader WebGPU libraries will help. 
 
@@ -11,10 +11,12 @@ I think we can define a standard approach that library authors and users can use
   - For some libraries, that'll require some level of 'fusion' to avoid the performance cost of spilling data to slower global storage and multiple shader dispatches between libraries. E.g. map() then reduce() shouldn't have to spill data to global storage in between.
 - host+shader libraries should be reconfigurable after use. Switching to a larger or different source buffer shouldn't require destroying everything and starting over.
 ## Proposed Sketch
-### TBD
+### Questions
 - are the plans below sufficient to enable efficient and sufficiently flexible host+shader libraries?
+- would this api structure work for some of your shaders?
 - binding groups integration - do host+shader libraries need to integrate binding group indices?
 - bindless?
+- are there critical features needed in WESL?
 ### Basic Approach
 WESL has a solution today for publishing shader libraries to crates.io and npmjs.com. See [publishing packages](https://wesl-lang.dev/docs/Publishing-Packages). Shader texts are bundled into rust or javascript structures with some metadata to enable shader linking of imported packages or crates. A host+shader library typically includes a shader bundle as well as some rust or javascript host code. But the shader code may be entirely internal to the library, users may only see the host API in Rust or TypeScript.
 
@@ -33,7 +35,7 @@ Applications will typically initialize and configure a host+shader library from 
 
 In TypeScript, the library is exposed as a class that implements the `HostedShader` interface which offers an explicit interfaces for **destroy** and a `commands()` method to integrate with the applications **execute** loop. A `HostedShader` is expected to offer **initialization** through constructor parameters, **reconfigure** with parameter-setting methods, and **allocate** lazily as needed for execution. 
 
-Rust version is TBD.
+Rust details are TBD.
 ### API discussion
 Host+shader libraries implement the following interface:
 ```ts
@@ -142,12 +144,15 @@ render();
 ```
 Accordingly, `HostedShader` implementations should be idempotent if a configuration value is reset to the same value.
 
-### WESL Features to Consider for Host+Shader Libraries
+### WESL Features handy for Host+Shader Libraries
 In addition to features generally useful (like generics), a few feature ideas are particularly relevant for this class of libraries:
 - reified references [#51](https://github.com/wgsl-tooling-wg/wesl-spec/issues/51) to specify user code to inject for [[#Manual Fusion]] 
 - a way for shaders to import from reified references
 - pluggable functions [#133](https://github.com/wgsl-tooling-wg/wesl-spec/issues/133)
 - a way to specify shader types (possibly shader generic types) from the host. 
+- a way to specify the BinOp monoid, from shader or host code: [#137](https://github.com/wgsl-tooling-wg/wesl-spec/issues/137).
+- possibly an approach to iterators, also from shader or host code: TBD.
+- an interface to host typing libraries, e.g. via reflection [#167](https://github.com/wgsl-tooling-wg/wesl-js/issues/167) to libraries like [TypeGPU](https://typegpu.com)
 ### Note on encapsulating shader code in libraries
 There are challenges to modularity in any WebGPU library with shader code, even if the library itself doesn't include any host code. Especially when two libraries might exist in the same WebGPU shader module, there's opportunity for conflict. For example, since all WGSL functions live in the same global namespace, two libraries that happen to use the same `fn` name will conflict. WESL solves shader name conflict problems with a mangling scheme. As WESL shaders are bundled into WGSL, global names (and the references to the global names) are made unique.
 
