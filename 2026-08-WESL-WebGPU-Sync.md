@@ -7,11 +7,11 @@
 - key tools today (wesl-rs, wesl-js, wgsl-analyzer, playground, wgsl-test, wgsl-format, wgsl-play/edit)
 - brief sketch of what's on the radar next: module parameters, generics, contracts [TBD]
 #### WESL to WebGPU compat goals/requirements 
-[draft: Designing WESL for WebGPU compatibility](./webgpu-compat-requirements)
+[draft: Designing WESL for WebGPU compatibility](./webgpu-compat-requirements.md)
 * Our stance is that any feature that _could_ be upstreamed to browser WebGPU/WGSL _should_ be designed so that it can upstreamed. Is that right? 
 - Does this keep WESL design/users aligned? 
 #### WESL / WebGPU target users 
-[draft: user/task classes](./task-classes)
+[draft: user/task classes](./task-classes.md)
 - As we consider new features (and inevitably add complexity) is this user/task class definition first as useful way to guide design choices? 
 - How are WebGPU uses / users different from other shader language communities?
 - What design assumptions / targets to WebGPU committees use today?
