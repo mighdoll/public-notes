@@ -27,7 +27,7 @@ Review the WESL imports spec and design doc.  [land mathis's polish, plus one mo
 #### Visibility 
 Review the WESL visibility spec and design doc. [we should have a working implementation (or 2 or 3) to try!]
 - 3 levels, does that seem like the right balance of power vs. complexity?
-- - 'main' module controls host visibility
+- 'main' module controls host visibility
 - Default *package* visibility allows legacy WGSL to be imported in an app, but requires adding `public` annotations to publish WGSL from a library..
 #### Conditions 
 Review the WESL conditions spec and design doc. [need a cleanup pass for old stuff in the docs]
@@ -41,10 +41,10 @@ Review the WESL conditions spec and design doc. [need a cleanup pass for old stu
 * help spread the word
 * help connect us to potential users and contributors
 # Use cases for next major design
-- Here's our list [TBD create issue list], what's missing?
+- Here's our list [TBD create use case issue list] - what's missing?
 # Future WESL
 - syntax question: tagging experimental features with `requires wesl_*`. 
-- current WESL experiments: do blocks? wesl-rs eval? reflection? module parameters? 
+- current WESL experiments: [do blocks? wesl-rs eval? reflection? module parameters?]
 - generics ideas? [probably not a discussion, unless there's specific things we want feedback on - they don't want open ended discussions] 
 - Feature ideas doc for side discussions?
 # Demos
