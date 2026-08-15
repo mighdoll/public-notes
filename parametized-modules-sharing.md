@@ -138,6 +138,5 @@ Sanity checking this part of the design sketch vs other languages..
 - _vars unique per parameter set_: same as C++/D template statics (one static per concretization, program-wide), or Slang. 
   Zig is finer grained due to their comptime approach, the SEED would be accidentally shared unless you write it differently. (Or maybe our parameterized modules are each one comptime block..)
   Generic statics have been requested for Rust, but it's hard with separate compilation and dyn.
-- _set params from host code_: Slang uses a separate syntax `extern`, which only works from host code not from other shaders. 
-  This WESL sketch allows setting parameters with a unified syntax, and it works from host or shader code.
-
+- _set params from host code_: Slang module configuration uses a separate `extern`/`export` syntax, host code reflects and picks.
+  This WESL sketch uses a unified syntax, settable from imports or from the host.
