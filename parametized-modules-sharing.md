@@ -128,13 +128,16 @@ With those rules for when to share vars, there's still room for author control:
 
 ## Module parameters designs in other languages
 
-Sanity checking this design sketch vs other languages..
+Sanity checking this part of the design sketch vs other languages..
 - _types unique by used parameters_: 
   the sketch is pretty close to Zig, where struct identity keys on the parameters captured by the comptime declaration. 
-  The sketch is finer grained than C++ or D templates, which fork types on unused parameters too. 
+  The sketch is finer grained than C++ or D templates (or Slang generics), which fork types on unused parameters too. 
   But a template wraps one struct where a module header covers a whole file. 
   OCaml functors are analogous to templates for types, AFAICT.
   Anyway, I don't see much upside in emitting more distinct types than strictly necessary. 
-- _vars unique per parameter set_: same as C++/D template statics (one static per instantiation, program-wide). 
+- _vars unique per parameter set_: same as C++/D template statics (one static per concretization, program-wide), or Slang. 
   Zig is finer grained due to their comptime approach, the SEED would be accidentally shared unless you write it differently. (Or maybe our parameterized modules are each one comptime block..)
   Generic statics have been requested for Rust, but it's hard with separate compilation and dyn.
+- _set params from host code_: Slang uses a separate syntax `extern`, which only works from host code not from other shaders. 
+  This WESL sketch allows setting parameters with a unified syntax, and it works from host or shader code.
+
