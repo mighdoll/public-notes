@@ -38,14 +38,13 @@ We've been assembling a list of user challenges in hopes of fixing many of them 
 - *todo: finish backlog of use case issues prior to F2F, make summary*
 - *todo: discuss at WGSL committee?*
 #### WESL / WebGPU target usage 
-[draft: user/task classes](./task-classes.md)
-Some thoughts on balancing power user features with design simplicity.
-What design assumptions / use targets do you think about? 
-Are the salient differences between WebGPU uses and users that are different from other shader language communities?
+[draft: user/task classes](./task-classes.md) - Thinking about how to balance potential power user features with design simplicity.
+- What design assumptions / use targets do you think about? 
+- Are the salient differences between WebGPU uses and users that are different from other shader language communities?
 - *todo: finish draft for WESL spec. file gpuweb issue and ask for feedback.*  
 #### WESL to WebGPU compat goals/requirements 
 [draft: Designing WESL for WebGPU compatibility](./webgpu-compat-requirements.md)
-Is this what we should do to keep the WESL design aligned for WebGPU/WGSL? 
+- Is this what we should do to keep the WESL design aligned for WebGPU/WGSL? 
 - *todo: finish draft for WESL spec. file gpuweb issue and ask for feedback.*
 ## Proposed / experimental WESL features 
 These will probably be ready to discuss or demo by Paris. 
@@ -74,9 +73,9 @@ We can demo the growing WESL based tool suite at the F2F. (WESL is a strict supe
 - **wgsl-test** - test runner for shaders
 - **wgsl-studio** - tests and player in vscode
 
-We'll can some community libraries as well: notably Lygia and Bevy.
+We'll can demo some community libraries as well: notably Lygia and Bevy.
 
-*todo: present wesl based tools and libraries at F2F*
+* *todo: present WESL-based tools and libraries at F2F (community demo day)*
 
 ## Existing gpuweb Github Issues
 
