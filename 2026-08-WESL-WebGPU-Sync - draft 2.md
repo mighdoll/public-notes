@@ -1,14 +1,15 @@
 WESL related topics to discuss with the WGSL/WebGPU team, with notes about gpuweb issues and F2F.
 
-**Questions**
-- What WESL stuff should we discuss at F2F? I propose 3 sessions: WESL overview, experimental features / open questions, and WESL demos (presumably on demo day). 
-- What should we make gpuweb issues for? Proposals below (and deferring several of the existing ones).
-- What should we discuss separately from the F2F? I propose a few topics we might discuss in committee below.
-
 **TL;DR;** 
-- Catch up the with the WGSL committee on the details of our major current WESL designs: modules, visibility, and conditions.
+- Catch up the with the WGSL committee on the details of major parts of the current WESL spec: modules, visibility, and conditions.
 - Discuss WESL design constraints and use cases
-- Refresh WESL related gpuweb issues 
+- Refresh WESL related gpuweb issues on gh
+
+**Questions**
+- What WESL stuff should we discuss at F2F? I propose 2 sessions: WESL overview, experimental features / open questions.  (And we can do WESL demos on community demo day.) 
+- What should we discuss at an WGSL meeting? I propose 2-3 sessions: module system, visibility, and conditions. 
+- What should we make gpuweb issues for? Proposals below.
+
 ## Aligning WESL Design for WebGPU/WGSL
 
 _Goal: Keep WESL designs aligned so that they serve as viable prototypes for WebGPU/WGSL._
@@ -46,28 +47,6 @@ Are the salient differences between WebGPU uses and users that are different fro
 [draft: Designing WESL for WebGPU compatibility](./webgpu-compat-requirements.md)
 Is this what we should do to keep the WESL design aligned for WebGPU/WGSL? 
 - *todo: finish draft for WESL spec. file gpuweb issue and ask for feedback.*
-
-## Existing gpuweb Issues
-
-**[#5140 - @if for conditions - preview](https://github.com/gpuweb/gpuweb/issues/5140)** (conditions issue - noted above)
-
-**[#5139 - extend the grammar for more attributes](https://github.com/gpuweb/gpuweb/issues/5139)** suggest we wait until a use case pulls for this - probably reflection will want custom attributes. Or maybe a tool like wgsl-formatter.. 
-- *todo: comment on the issue*
-
-**[#5070 - WESL Host-visible names that shadow predeclared names](https://github.com/gpuweb/gpuweb/issues/5070)** Open design problem, not ripe to discuss. 
-- *todo: comment on issue*
-
-**[#5138 - alternative to const_assert in functions](https://github.com/gpuweb/gpuweb/issues/5138)** It's a corner case, `const_assert` in functions isn't that popular, low priority.
-- *todo: comment on the issue*.
-
-**[#777 - consider namespaces for WGSL](https://github.com/gpuweb/gpuweb/issues/777)** WESL is built around modules like javascript/typescript modules, which map directly to files/urls. Namespaces are pretty low on our priority list, but the feature comes up from time to time. 
-- *todo: could add to this issue or make a new one to discuss why modules before namespaces makes sense, but not sure if it's priority* 
-
-**[#4905 - bound variables in packages](https://github.com/gpuweb/gpuweb/issues/4905)** wesl#222 module parameters is one approach to this problem. auto binding structs might be another.
-- *todo: nothing now, add comment when wesl#222 or deferred binding structs is ripe*
-
-**[#5456 - # link multiple GPUShaderModules](https://github.com/gpuweb/gpuweb/issues/5456)** The WESL module system we hope shows how this could be solved in future WebGPU/WGSL. Best to let the design get beat up in WESL first before considering baking it into browsers. 
-- *todo: add comment referring to WESL?*
 ## Proposed / experimental WESL features 
 These will probably be ready to discuss or demo by Paris. 
 * *todo: discuss current issues from the frontier of WESL design at the F2F*  
@@ -78,7 +57,10 @@ These will probably be ready to discuss or demo by Paris.
 **do blocks** and **deferred bindings**  WESL-js has two optional features that enable creating pipelines and buffers in _shader code_. Users can configure and dispatch multiple shaders without any host code boilerplate. The code savings are dramatic. `do` blocks look like WGSL/WESL functions, but are executed by an interpreter on the CPU. It's very experimental. 
 - *todo: document as WESL experimental feature. demo at F2F*
 
-**other open designs**  generics, contracts, reflection, operator overloading, function overloading, etc. No reviewable designs yet, but we should mention these issues that we're working on. 
+**eval()**  WESL-rs has an experimental feature to evaluate WGSL/WESL shader code on the CPU. 
+- *todo: document as WESL experimental feature. demo at F2F*
+
+**other open designs**  generics, contracts, reflection, operator overloading, function overloading. No reviewable designs yet, but we should mention these issues that we're working on. 
 * *todo: present summary at F2F*
 ## Tools and Libraries
 We can demo the growing WESL based tool suite at the F2F. (WESL is a strict superset of WGSL, so the tools support WGSL and WESL.)
@@ -95,3 +77,25 @@ We can demo the growing WESL based tool suite at the F2F. (WESL is a strict supe
 We'll can some community libraries as well: notably Lygia and Bevy.
 
 *todo: present wesl based tools and libraries at F2F*
+
+## Existing gpuweb Github Issues
+
+**[#5140 - @if for conditions - preview](https://github.com/gpuweb/gpuweb/issues/5140)** (conditions issue - noted above)
+
+**[#5139 - extend the grammar for more attributes](https://github.com/gpuweb/gpuweb/issues/5139)** suggest we wait until a use case pulls for this - probably reflection will want custom attributes. Or maybe a tool like wgsl-formatter.. 
+- *todo: comment on the issue*
+
+**[#5070 - WESL Host-visible names that shadow predeclared names](https://github.com/gpuweb/gpuweb/issues/5070)** Open design problem, not ripe to discuss. 
+- *todo: comment on issue*
+
+**[#5138 - alternative to const_assert in functions](https://github.com/gpuweb/gpuweb/issues/5138)** It's a corner case, `const_assert` in functions isn't that popular, low priority.
+- *todo: comment on the issue*.
+
+**[#777 - consider namespaces for WGSL](https://github.com/gpuweb/gpuweb/issues/777)** WESL is built around modules like javascript/typescript modules, which map directly to files/urls. Namespaces are pretty low on our priority list, but the feature comes up from time to time. 
+- *todo: could add to this issue or make a new one to discuss why modules before namespaces*
+
+**[#4905 - bound variables in packages](https://github.com/gpuweb/gpuweb/issues/4905)** wesl#222 module parameters is one approach to this problem. auto binding structs might be another.
+- *todo: nothing now, add comment when wesl#222 or deferred binding structs is ripe*
+
+**[#5456 - # link multiple GPUShaderModules](https://github.com/gpuweb/gpuweb/issues/5456)** The WESL module system we hope shows how this could be solved in future WebGPU/WGSL. Best to let the design get beat up in WESL first before considering baking it into browsers. 
+- *todo: add comment referring to WESL?*
