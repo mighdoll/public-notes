@@ -1,6 +1,4 @@
-Let's revise our 'example user' description in for [WESL](https://wesl-lang.dev/spec/Designing#who-are-wesl-programmers) 
-
-- [ ] [revise this based on survey info too!]
+Let's revise our 'typical user' description in for [WESL](https://wesl-lang.dev/spec/Designing#who-are-wesl-programmers) 
 
 ## Complexity levels
 

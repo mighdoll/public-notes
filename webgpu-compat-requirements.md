@@ -34,18 +34,6 @@ future version of WGSL.
    A failure to resolve or fetch that URL is an error; the
    loader must not try alternate extensions, directories, or fallback URLs.
 
-7. **Make module dependencies statically discovarable.** To make module fetching
-   tractable in browsers, a module's dependencies
-   must be discoverable from its import statements, without parsing
-   function bodies, resolving names, or evaluating conditions.
-   [I think this may be wanted by browsers, since engines don't parse WGSL
-   in the process that fetches resources, but need to confirm upstream, and ask
-   whether an import scanner is ok.]
-   Fetching a convervative superset of dependencies is allowed, e.g., some 
-   extra modules may be fetched even if they're unneeded after conditions are evaluated.
-   (I think this may mean that an inline path must name a module that appears in an
-   import statement in the same file, followed by one declaration segment.)
-
-8. **Explain errors without showing lowered WGSL.** Diagnostics must be
+7. **Explain errors without showing lowered WGSL.** Diagnostics must be
    expressible in terms of what the author wrote: their file, their names, their
    call chain. (Lowered source varies by implementation, and especially across browsers.)
