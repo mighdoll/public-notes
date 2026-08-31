@@ -7,7 +7,7 @@ WESL related topics to discuss with the WGSL/WebGPU team, with notes about gpuwe
 
 **Questions**
 - What WESL stuff should we discuss at F2F? I propose 2 sessions: WESL overview, experimental features / open questions.  (And we can do WESL demos on community demo day.) 
-- What should we discuss at an WGSL meeting? I propose 2-3 sessions: module system, visibility, and conditions. 
+- What should we discuss at an WGSL meeting? I propose 2-3 sessions: module system, visibility, and conditions. Perhaps we might do the modules one prior the the F2F.
 - What should we make gpuweb issues for? Proposals below.
 
 ## Aligning WESL Design for WebGPU/WGSL
