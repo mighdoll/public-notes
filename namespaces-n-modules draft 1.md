@@ -1,6 +1,6 @@
 Naming and importing code units is a fine direction for WebGPU/WGSL!
 
-I want to debate one design choice: where to declare the name of a code unit.
+I want to discuss one design choice: where to declare the name of a code unit.
 
 namespaces: 
 - units of code are named inside the code e.g. `createShaderModule({ code: "namespace foo { fn bar() {} }" })`
@@ -13,7 +13,7 @@ Either way, WGSL gets a way to address code in other code units, e.g. `foo::bar(
 They're similar.. but start with modules. Moving the labels to the outside leads to a better place for users: a browser native standard for code sharing, with no external rewriting/linking tools required. Namespaces alone aren't as good.
 
 For bigger projects that want to organize their code:
-- The directory tree already gives every file a unique name (`render/util.wgsl` vs `physics/util.wgsl`). With modules that path is the label: whatever reads the files (a bundler plugin, a glob, a fetch loop) attaches it as the map key, and the shader text is untouched. Namespaces make users write the hierarchy again inside each file and keep the two in sync, or run a tool that edits their WGSL. Either way it's a maintenance and readability burden.
+- The directory tree already gives every file a unique name (`render/util.wgsl` vs `physics/util.wgsl`). With modules that path is the label, attached by whatever tool turns files into strings. With namespaces the shader text itself carries a second copy of the label that users have to read past and keep in sync with the file name. Existing WGSL files go into a `sources` map unmodified; namespaces mean editing every file to wrap it in a namespace block.
 - Translator error line numbers point into the concatenated code blob, rather than the files. Source maps (#4844) for shaders in browsers will help, but relying on them makes source maps foundational for everyone, not just for transpiled shader languages.
 - Big projects have many pipelines and several device configurations, each wanting a different subset of the code. With concatenation, the user or a tool has to select that subset first. Otherwise, an unused file containing `enable f16;` can make shader creation fail on a device without `shader-f16` enabled. With modules, we can specify that the browser follows references from a chosen root source, parsing and validating only the sources reached that way. Unreferenced modules can remain unparsed, including modules whose only references are disabled by conditional translation. Relatedly, @dneto0 asked how a translator skips syntax it doesn't understand [here](https://github.com/gpuweb/gpuweb/issues/5140#issuecomment-3293396567).
 
