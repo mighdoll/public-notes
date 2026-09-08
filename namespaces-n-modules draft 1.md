@@ -10,7 +10,7 @@ modules:
 
 Either way, WGSL gets a way to address code in other code units, e.g. `foo::bar()`, and a `wgsl::` prefix for builtins. The implementations inside WebGPU should be similar overall. Modules need an addition to `createShaderModule()` to accept labeled code strings. Namespaces need new WGSL syntax for the namespace blocks.
 
-They're similar.. but start with modules. Moving the labels to the outside leads to a better place for users: a browser native standard for code sharing, with no external rewriting/linking tools required. Namespaces alone aren't as good.
+They're similar.. but start with modules. Moving the labels to the outside leads to a better place for users: a browser native standard for code sharing, with no rewriting/linking tools required. Namespaces alone aren't as good.
 
 For bigger projects that want to organize their code:
 - The directory tree already gives every file a unique name (`render/util.wgsl` vs `physics/util.wgsl`). With modules that path is the label, attached by whatever tool turns files into strings. With namespaces the shader text itself carries a second copy of the label that users have to read past and keep in sync with the file name. Existing WGSL files go into a `sources` map unmodified; namespaces mean editing every file to wrap it in a namespace block.
