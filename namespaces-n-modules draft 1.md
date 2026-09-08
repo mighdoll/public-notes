@@ -8,7 +8,7 @@ namespaces:
 modules:
 - units of code are named outside the code e.g. `createShaderModule({ sources: { "foo": "fn bar() {}" } })`
 
-Either way, WGSL gets a way to address code in other code units, e.g. `foo::bar()`, and a `wgsl::` prefix for builtins. The implementations inside WebGPU should be similar overall.  Modules need an addition to `createShaderModule()` to accept labeled code strings, namespaces need new WGSL syntax for the namespace blocks.
+Either way, WGSL gets a way to address code in other code units, e.g. `foo::bar()`, and a `wgsl::` prefix for builtins. The implementations inside WebGPU should be similar overall. Modules need an addition to `createShaderModule()` to accept labeled code strings. Namespaces need new WGSL syntax for the namespace blocks.
 
 They're similar.. but start with modules. Moving the labels to the outside leads to a better place for users: a browser native standard for code sharing, with no external rewriting/linking tools required. Namespaces alone aren't as good.
 
