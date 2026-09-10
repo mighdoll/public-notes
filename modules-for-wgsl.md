@@ -2,6 +2,27 @@
 - write reply on 7310
 - propose modules for WGSL
 
+----
+Benefits of a module system: split code into reusable pieces
+- ergonomics for users that split shaders across files
+  - trivial mapping to filesystems (or urls)
+  - no user side transpilation tools required
+  - errors are trivially mapped back to sources (even w/o embedded source maps)
+- ergonomics for code sharing via libraries
+  - code can be 'position independent', sharable w/o editing
+  - library scoping / versioning control stays with package manager, not the code. diamond dependencies, multi-version all work.
+  - browser standard for modules is key primitive for external library standard
+- ergonomics for access to overloaded wgsl functions 
+- enables optional futures
+  - conditionally unparsed modules
+  - esm style fetching of resources (js library for now)
+
+Future stuff
+- wildcard imports vs named module imports (mention?)
+- visibility (skip?)
+- conditions (skip?)
+
+-----
 
 7310 reply
 > I think this idea would make a great proposal. If we have multiple ways to do the similar thing it would be nice to see them written up so we can discuss them together. It lets us make a better decision on if we want both, neither or either of the proposals. So, please, write up a module proposal to discuss how it would work.
@@ -11,8 +32,8 @@
 > * I don't think we want files as a unit in WGSL. We don't know about files, we get a data string. If you want to write your entire WGSL source into a single file with separation of the code in that file, you should be able to do so.
 
 The overwhelming case in practice of course is that users with code organizational needs split their code across files.
-I think that practice is in scope for us to consider as we design ergonomic features into WebGPU,
-even though the browser would receive a set of named strings and not see the filesystem directly.
+As we design ergonomic features into WebGPU, I think that practical user workflows are in scope for us to consider. 
+(Even though the browser API is just strings, never the fileystem directly)
 
 > * What happens if your libraries require different versions of their dependencies? Do you import it multiple times?
 
@@ -26,20 +47,22 @@ For the unusual case where a single app or library directly requires two version
 > ## Project organization
 > I don't think we want to prescribe how a project organizes its source. It may use multiple files in a directory hierarchy. It may use a flat folder, it may use a single file. All of that, I think, are a higher level then WGSL and don't really affect how either of these systems work.
 
-The mapping of the filesystem to module or namespace strings is handled outside the browser. 
+The mapping of the filesystem to module or namespace strings is handled outside the browser. It isn't prescribed by the browser,
+though of course our API tool choices will influence tools.
 
-A trivial mapping tool works really well for modules though. But I think with namespaces, a robust mapping tool will have to do some level of transpilation.
+A trivial mapping tool works really well for modules. 
+But with namespaces alone, I think a robust mapping tool will need to do some transpilation/rewriting.
 
 > 
 > Having the namespace in the file [...] also allows multiple namespaces in a single file.
 
-True! It's come up often in WESL design discussions. We've been tempted but not fully convinced that the additional complexity is worth the additional convenience. So we've deferred while we see how it might interact with other future features.
+True! We've often been tempted in WESL, but so far not fully convinced that the additional complexity is worth the additional convenience. Thus far we've deferred while we see how it might interact with other future features.
 
 > 
 > ## Error mapping
 > I think you have an error issue either way, but it's a little simpler with modules. In both cases you just have a blob of code, the module name doesn't necessarily have to map back to a given file either. It's a little simpler in the module case in that your limiting the scope to that named thing, but that named thing could have come from anywhere as well.
 
-Yep, in the module world the line numbers column positions would be perfect, and the remaining gap would be translating `foo::bar` to `./foo/bar.wgsl`. (presuming `::` is the separator)
+Yep, in the module world the line numbers and column positions would be perfect already, and the remaining gap would be translating `foo::bar` to `./foo/bar.wgsl`.
 
 > 
 > ## Multifile handling
@@ -50,14 +73,16 @@ There's a difference between a tool that collects the sources into a string or s
 > 
 > I'm not sure if we'd want to have "unparsed modules" as you then get spooky action of, I add this `foo::bar` call and suddenly I get compile errors in an unrelated source file. Having them parsed when you call createShaderModule allows us to know that they're valid and usable by the time we go to create the pipeline.
 
-Conditional compilation is one of the top user needed features we found in extant code. 
-If WGSL gets some form of conditional compilation (WESL's `@if`, other preprocessors use `#ifdef`),
-there's some reasons you might want unparsed modules.
-- some modules will be wholly unused at runtime. Users don't tend to think about whether the MOBILE module is fully configured when they're using the desktop entry module. We've seen this a few times in bevy for example.
+Conditional compilation is one of the top user needed features we found in extant code when got started with WESL.
+If WGSL gets some form of conditional compilation (WESL's `@if`, or some variant of `#ifdef` from other preprocessors),
+we might want conditionally unparsed modules:
+- some modules will be wholly unused at runtime. Users don't tend to think about whether the MOBILE module is fully configured when they're using the desktop entry module and its dependencies.
 - an app or library can include a module for a new experimental WGSL feature that's only implemented in one experimental browser, and conditionally ignore it elswehere.
 
-It's certainly debatable whether you should syntactically (or semantically) validate unused code units. 
-But modules give an easier option if ignoring ends up being what we want.
+But that's a double maybe (maybe WGSL decides to adopt conditions, maybe WGSL decides to skip unused modules), so
+even if I guess that both are likely, maybe it doesn't add up to a very strong argument :-). 
+
+The analogy is to setting an `override`, some things might break after you set runtime variables, or runtime conditions.
 
 > 
 > ## Namespace collisions
