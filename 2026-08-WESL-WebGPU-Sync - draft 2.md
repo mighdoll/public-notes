@@ -65,7 +65,9 @@ These will probably be ready to discuss or demo by Paris.
 We can demo the growing WESL based tool suite at the F2F. (WESL is a strict superset of WGSL, so the tools support WGSL and WESL.)
 - **wesl-rs** - wesl implementation for rust
 - **wesl-js** - wesl implementation for javascript
-- **wgsl-analyzer** - language server for vscode 
+- **wgsl-analyzer** - language server for vscode
+- [**wesldoc**](https://github.com/jannik4/wesldoc) - generate documentation pages for WESL
+- [**wgslfmt**](https://github.com/wgsl-analyzer/wgsl-analyzer/pull/481) - formats WGSL/WESL code
 - **wgsl-play** - standalone html webgpu player
 - **wgsl-edit** - standalone html shader editor
 - **wgsl-format** - code formatter
@@ -76,6 +78,10 @@ We can demo the growing WESL based tool suite at the F2F. (WESL is a strict supe
 We'll can demo some community libraries as well: notably Lygia and Bevy.
 
 * *todo: present WESL-based tools and libraries at F2F (community demo day)*
+
+### Demos
+Specific demos that we should show to the WebGPU committee
+- wgsl-analyzer running in the browser https://github.com/wgsl-analyzer/wgsl-analyzer/pull/1499
 
 ## Existing gpuweb Github Issues
 
